@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Проверка простого числа</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      padding: 50px;
+    }
+
+    .container {
+      background-color: white;
+      max-width: 600px;
+      margin: auto;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    input, select, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px;
+    }
+
+    #resultBox {
+      margin-top: 20px;
+      background-color: #d0e7ff;
+      color: #003366;
+      font-weight: bold;
+      padding: 15px;
+      border-radius: 6px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Проверка: простое ли число?</h2>
+
+    <label for="method">Выберите метод:</label><br>
+    <select id="method">
+      <option value="naive">1. Наивный (все делители)</option>
+      <option value="sqrt">2. Деление до √n</option>
+      <option value="fermat">3. Тест Ферма</option>
+      <option value="miller">4. Тест Миллера-Рабина</option>
+    </select><br>
+
+    <input type="number" id="numberInput" placeholder="Введите число" />
+    <button onclick="checkPrime()">Проверить</button>
+
+    <div id="resultBox"></div>
+  </div>
+
+  <script>
+    function isPrimeNaive(n) {
+      if (n <= 1) return false;
+      for (let i = 2; i < n; i++) {
+        if (n % i === 0) return false;
+      }
+      return true;
+    }
+
+    function isPrimeSqrt(n) {
+      if (n <= 1) return false;
+      if (n === 2) return true;
+      if (n % 2 === 0) return false;
+      for (let i = 3; i <= Math.sqrt(n); i += 2) {
+        if (n % i === 0) return false;
+      }
+      return true;
+    }
+
+    function modPow(base, exp, mod) {
+      let result = 1;
+      base %= mod;
+      while (exp > 0) {
+        if (exp % 2 === 1) result = (result * base) % mod;
+        exp = Math.floor(exp / 2);
+        base = (base * base) % mod;
+      }
+      return result;
+    }
+
+    function isPrimeFermat(n, k = 5) {
+      if (n <= 1) return false;
+      if (n === 2) return true;
+      for (let i = 0; i < k; i++) {
+        let a = 2 + Math.floor(Math.random() * (n - 3));
+        if (modPow(a, n - 1, n) !== 1) return false;
+      }
+      return true;
+    }
+
+    function isPrimeMillerRabin(n, k = 5) {
+      if (n < 2) return false;
+      if (n === 2 || n === 3) return true;
+      if (n % 2 === 0) return false;
+
+      let s = 0;
+      let d = n - 1;
+      while (d % 2 === 0) {
+        d /= 2;
+        s++;
+      }
+
+      for (let i = 0; i < k; i++) {
+        let a = 2 + Math.floor(Math.random() * (n - 4));
+        let x = modPow(a, d, n);
+        if (x === 1 || x === n - 1) continue;
+
+        let continueLoop = false;
+        for (let r = 1; r < s; r++) {
+          x = modPow(x, 2, n);
+          if (x === n - 1) {
+            continueLoop = true;
+            break;
+          }
+        }
+        if (!continueLoop) return false;
+      }
+      return true;
+    }
+
+    function checkPrime() {
+      const n = parseInt(document.getElementById("numberInput").value);
+      const method = document.getElementById("method").value;
+      const resultBox = document.getElementById("resultBox");
+
+      if (isNaN(n)) {
+        resultBox.style.display = "block";
+        resultBox.textContent = "Введите корректное число!";
+        return;
+      }
+
+      let isPrime = false;
+      switch (method) {
+        case "naive":
+          isPrime = isPrimeNaive(n);
+          break;
+        case "sqrt":
+          isPrime = isPrimeSqrt(n);
+          break;
+        case "fermat":
+          isPrime = isPrimeFermat(n);
+          break;
+        case "miller":
+          isPrime = isPrimeMillerRabin(n);
+          break;
+      }
+
+      resultBox.style.display = "block";
+      resultBox.textContent = isPrime
+        ? ${n} — простое число
+        : ${n} — не простое число;
+    }
+  </script>
+</body>
+</html>
